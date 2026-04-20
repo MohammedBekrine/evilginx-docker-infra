@@ -48,7 +48,23 @@
       "Bash(][^'\\\\\"]*['\\\\\")",
       "Bash(grep -o \"\\\\.set\\(['\\\\\"`][^'\\\\\"]*['\\\\\"`]\" /tmp/main.62ee99185f8909a6.js)",
       "Bash(python3 -m json.tool)",
-      "WebFetch(domain:developers.cloudflare.com)"
+      "WebFetch(domain:developers.cloudflare.com)",
+      "Bash(gh search *)",
+      "WebSearch",
+      "Bash(curl -sL https://raw.githubusercontent.com/simplerhacking/Evilginx3-Phishlets/main/Microsoft2024.yaml)",
+      "Bash(curl -sL https://api.github.com/search/code?q=login.microsoftonline.com+proxy_hosts+filename:yaml+evilginx)",
+      "Bash(python3 -c \" import sys,json data = json.load\\(sys.stdin\\) for item in data.get\\('items', []\\): print\\(f\\\\\"{item['repository']['full_name']} — {item['path']}\\\\\"\\)\")",
+      "Bash(curl -sL \"https://raw.githubusercontent.com/simplerhacking/Evilginx3-Phishlets/main/o365.yaml\")",
+      "Bash(curl -sL \"https://api.github.com/repos/simplerhacking/Evilginx3-Phishlets/contents/\")",
+      "Bash(curl -sL \"https://api.github.com/repos/An0nUD4Y/Evilginx2-Phishlets/contents/\")",
+      "Bash(python3 -c \" import sys,json items = json.load\\(sys.stdin\\) for item in items: if 'o365' in item['name'].lower\\(\\) or 'microsoft' in item['name'].lower\\(\\) or 'office' in item['name'].lower\\(\\): print\\(item['name']\\)\")",
+      "Bash(python3 -c \"import sys,json; print\\(json.dumps\\(json.load\\(sys.stdin\\), indent=2\\)[:500]\\)\")",
+      "Bash(curl -sL \"https://raw.githubusercontent.com/BakkerJan/evilginx3/master/o365.yaml\")",
+      "Bash(python3 -c \" import sys,json items = json.load\\(sys.stdin\\) for item in items: if isinstance\\(item, dict\\) and item.get\\('name',''\\).endswith\\('.yaml'\\): print\\(item['name']\\)\")",
+      "Bash(curl -sL \"https://raw.githubusercontent.com/BakkerJan/evilginx3/master/microsoft365.yaml\")",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)"
     ]
   }
 }
