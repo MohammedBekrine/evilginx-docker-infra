@@ -64,7 +64,8 @@
       "Bash(curl -sL \"https://raw.githubusercontent.com/BakkerJan/evilginx3/master/microsoft365.yaml\")",
       "Bash(git add *)",
       "Bash(git commit -m ' *)",
-      "Bash(git push *)"
+      "Bash(git push *)",
+      "WebFetch(domain:1337skills.com)"
     ]
   }
 }
