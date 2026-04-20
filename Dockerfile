@@ -15,7 +15,7 @@ RUN make && mkdir -p /out && cp ./build/evilginx /out/evilginx
 # ---- Stage 2: Minimal runtime image ----
 FROM alpine:3.19
 
-RUN apk add --no-cache bash ca-certificates gettext
+RUN apk add --no-cache bash ca-certificates gettext expect
 
 COPY --from=builder /out/evilginx /usr/local/bin/evilginx
 RUN chmod +x /usr/local/bin/evilginx

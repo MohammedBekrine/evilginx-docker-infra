@@ -37,10 +37,18 @@
       "Bash(chmod +x /tmp/evilginx-config.exp)",
       "Bash(curl -sk --resolve login.test.invalid:443:127.0.0.1 --max-time 8 -o /dev/null -w \"direct:443  HTTP %{http_code}  err=%{errormsg}\\\\n\" https://login.test.invalid/)",
       "Bash(awk '/^\\\\+.*-.*\\\\+$/,/^\\\\+.*-.*\\\\+$/')",
-      "mcp__burp__generate_random_string",
+      "Bash(gh --version)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
       "mcp__burp__get_proxy_http_history_regex",
-      "mcp__burp__get_proxy_http_history",
-      "mcp__burp__send_http1_request"
+      "Bash(curl -sk \"https://cmcuat.hbtf.com:444/main.62ee99185f8909a6.js\" -o /tmp/main.62ee99185f8909a6.js)",
+      "Read(//tmp/**)",
+      "Bash(grep -o \"\\\\.\\\\\\(post\\\\|put\\\\|get\\\\|delete\\\\|patch\\\\\\)\\(['\\\\\"\\\\`][^'\\\\\"]*crif[^'\\\\\"]*['\\\\\"\\\\`]\" /tmp/main.62ee99185f8909a6.js)",
+      "Bash(grep -o \"\\\\.\\\\\\(post\\\\|put\\\\|delete\\\\|patch\\\\\\)\\(['\\\\\"\\\\`][^'\\\\\"]*authorizedPerson[^'\\\\\"]*['\\\\\"\\\\`]\" /tmp/main.62ee99185f8909a6.js)",
+      "Bash(][^'\\\\\"]*['\\\\\")",
+      "Bash(grep -o \"\\\\.set\\(['\\\\\"`][^'\\\\\"]*['\\\\\"`]\" /tmp/main.62ee99185f8909a6.js)",
+      "Bash(python3 -m json.tool)",
+      "WebFetch(domain:developers.cloudflare.com)"
     ]
   }
 }

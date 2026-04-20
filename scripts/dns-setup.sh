@@ -2,6 +2,7 @@
 # ============================================
 # DNS Record Setup via Cloudflare API
 # Creates A + NS records for Evilginx
+# Skips records that already exist with correct values
 # ============================================
 set -e
 
@@ -16,8 +17,24 @@ if [ -z "${CF_API_TOKEN}" ] || [ -z "${CF_ZONE_ID}" ]; then
     exit 1
 fi
 
+record_exists() {
+    local type="$1" name="$2" content="$3"
+
+    result=$(curl -s -X GET "${CF_API}/zones/${CF_ZONE_ID}/dns_records?type=${type}&name=${name}&content=${content}" \
+        -H "${AUTH_HEADER}" \
+        -H "Content-Type: application/json")
+
+    count=$(echo "${result}" | python3 -c "import sys,json; print(len(json.load(sys.stdin).get('result', [])))" 2>/dev/null)
+    [ "${count}" -gt 0 ] 2>/dev/null
+}
+
 create_record() {
     local type="$1" name="$2" content="$3" proxied="${4:-false}"
+
+    if record_exists "${type}" "${name}" "${content}"; then
+        echo "[=] ${type} record already exists: ${name} -> ${content}, skipping"
+        return
+    fi
 
     echo "[*] Creating ${type} record: ${name} -> ${content}"
     response=$(curl -s -X POST "${CF_API}/zones/${CF_ZONE_ID}/dns_records" \
