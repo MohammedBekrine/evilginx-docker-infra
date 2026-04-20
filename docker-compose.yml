@@ -1,0 +1,41 @@
+services:
+  evilginx:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: evilginx
+    restart: unless-stopped
+    network_mode: host
+    # Evilginx is an interactive REPL; without a TTY/stdin it exits on startup.
+    # Attach later with `docker attach evilginx` to use the CLI.
+    tty: true
+    stdin_open: true
+    env_file:
+      - .env
+    volumes:
+      - ./config/phishlets:/app/phishlets:ro
+      - evilginx-data:/root/.evilginx
+      - ./logs:/app/logs
+    cap_add:
+      - NET_ADMIN
+      - NET_BIND_SERVICE
+
+  redirector:
+    image: caddy:2-alpine
+    container_name: evilginx-redirector
+    restart: unless-stopped
+    profiles:
+      - with-redirector
+    # Host network so Caddy can reach Evilginx on localhost:443.
+    # Evilginx binds 53/80/443; Caddy listens on 8443, no conflict.
+    network_mode: host
+    # Caddyfile uses {$PHISHLET_HOSTNAME} for the site block.
+    env_file:
+      - .env
+    volumes:
+      - ./redirector/Caddyfile:/etc/caddy/Caddyfile:ro
+    depends_on:
+      - evilginx
+
+volumes:
+  evilginx-data:
