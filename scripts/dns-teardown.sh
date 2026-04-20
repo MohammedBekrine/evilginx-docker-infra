@@ -54,6 +54,7 @@ delete_records_by_name "${BASE_DOMAIN}"
 
 if [ -n "${PHISHLET_HOSTNAME}" ]; then
     delete_records_by_name "${PHISHLET_HOSTNAME}"
+    delete_records_by_name "*.${PHISHLET_HOSTNAME}"
 fi
 
 echo ""

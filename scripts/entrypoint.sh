@@ -23,6 +23,7 @@ EOF
         cat >> "${SETUP_SCRIPT}" <<EOF
 phishlets hostname ${PHISHLET_NAME} ${PHISHLET_HOSTNAME}
 phishlets enable ${PHISHLET_NAME}
+lures delete all
 EOF
     fi
 
