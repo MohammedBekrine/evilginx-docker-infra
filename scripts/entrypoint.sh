@@ -19,15 +19,15 @@ is_already_configured() {
     [ -f "${CONFIG_JSON}" ] || return 1
 
     local saved_domain saved_ip saved_hostname saved_enabled
-    saved_domain=$(python3 -c "import json; print(json.load(open('${CONFIG_JSON}')).get('general',{}).get('domain',''))" 2>/dev/null)
-    saved_ip=$(python3 -c "import json; print(json.load(open('${CONFIG_JSON}')).get('general',{}).get('external_ipv4',''))" 2>/dev/null)
-    saved_hostname=$(python3 -c "import json; print(json.load(open('${CONFIG_JSON}')).get('phishlets',{}).get('${PHISHLET_NAME}',{}).get('hostname',''))" 2>/dev/null)
-    saved_enabled=$(python3 -c "import json; print(json.load(open('${CONFIG_JSON}')).get('phishlets',{}).get('${PHISHLET_NAME}',{}).get('enabled',''))" 2>/dev/null)
+    saved_domain=$(jq -r '.general.domain // ""' "${CONFIG_JSON}" 2>/dev/null)
+    saved_ip=$(jq -r '.general.external_ipv4 // ""' "${CONFIG_JSON}" 2>/dev/null)
+    saved_hostname=$(jq -r ".phishlets.\"${PHISHLET_NAME}\".hostname // \"\"" "${CONFIG_JSON}" 2>/dev/null)
+    saved_enabled=$(jq -r ".phishlets.\"${PHISHLET_NAME}\".enabled // false" "${CONFIG_JSON}" 2>/dev/null)
 
     [ "${saved_domain}" = "${BASE_DOMAIN}" ] && \
     [ "${saved_ip}" = "${SERVER_IP}" ] && \
     [ "${saved_hostname}" = "${PHISHLET_HOSTNAME}" ] && \
-    [ "${saved_enabled}" = "True" ]
+    [ "${saved_enabled}" = "true" ]
 }
 
 # ---------------------------------------------------
